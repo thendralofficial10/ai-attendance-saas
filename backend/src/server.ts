@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { loggerMiddleware } from "../middleware/logger.middleware.js";
+import healthRoutes from "../routes/health.routes.js";
+import employeeRoutes from "../routes/employee.routes.js";
 
 dotenv.config();
 
@@ -8,13 +11,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(loggerMiddleware);
+app.use("/health", healthRoutes);
+app.use("/employees", employeeRoutes);
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Backend is running",
-  });
-});
 
 const PORT = process.env.PORT || 5000;
 
