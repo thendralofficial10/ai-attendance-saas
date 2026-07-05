@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { getEmployees, createEmployee, updateEmployee, deleteEmployee } from "../services/employee.service.js";
+import { AuthRequest } from "../middleware/auth.middleware.js";
+
+import { getEmployees, createEmployee, updateEmployee, deleteEmployee, updateProfileImage } from "../services/employee.service.js";
 export const getAllEmployees = async (
   req: Request,
   res: Response
@@ -137,6 +139,65 @@ export const removeEmployee = async (
     res.status(500).json({
       success: false,
       message: "Failed to delete employee",
+    });
+  }
+};
+
+export const uploadProfileImage = async (
+  req: AuthRequest,
+  res: Response
+) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid employee id",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    const imagePath = req.file.path.replace(/\\/g, "/");
+    const employee = await updateProfileImage(id, imagePath);
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile image uploaded successfully",
+      data: employee,
+    });
+  } catch (error: any) {
+    if (error.message === "Only jpeg, jpg, png, webp images are allowed") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({
+        success: false,
+        message: "File too large. Maximum size is 2MB",
+      });
+    }
+
+    console.error("❌ Error uploading profile image:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to upload profile image",
     });
   }
 };

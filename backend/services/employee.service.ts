@@ -50,3 +50,19 @@ export const deleteEmployee = async (id: number) => {
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
+export const updateProfileImage = async (
+  id: number,
+  imagePath: string
+) => {
+  const query = `
+    UPDATE employees
+    SET profile_image = $1
+    WHERE id = $2
+    RETURNING *
+  `;
+  const values = [imagePath, id];
+
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};
