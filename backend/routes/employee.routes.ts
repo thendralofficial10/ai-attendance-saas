@@ -5,12 +5,12 @@ import {
   editEmployee,
   removeEmployee,
 } from "../controllers/employee.controller.js";
-
+import { protect, adminOnly } from "../middleware/auth.middleware.js";
 const router = Router();
 
-router.get("/", getAllEmployees);
-router.post("/", addEmployee);
-router.put("/:id", editEmployee);
-router.delete("/:id", removeEmployee);
+router.get("/", protect, getAllEmployees);
+router.post("/", protect, adminOnly, addEmployee);
+router.put("/:id", protect, adminOnly, editEmployee);
+router.delete("/:id", protect, adminOnly, removeEmployee);
 
 export default router;
