@@ -23,39 +23,35 @@ export default function Table<T>({
   isLoading = false,
 }: TableProps<T>) {
   if (isLoading) {
-    return (
-      <div className="text-center py-10 text-gray-500">Loading...</div>
-    );
+    return <div className="text-center py-10 text-slate text-sm">Loading...</div>;
   }
 
   if (data.length === 0) {
-    return (
-      <div className="text-center py-10 text-gray-500">{emptyMessage}</div>
-    );
+    return <div className="text-center py-10 text-slate text-sm">{emptyMessage}</div>;
   }
 
   return (
-    <div className="overflow-x-auto border border-gray-200 rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto border border-slate/15 rounded-lg bg-white">
+      <table className="min-w-full divide-y divide-slate/15">
+        <thead className="bg-paper">
           <tr>
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className="px-4 py-3 text-left text-xs font-medium text-slate uppercase tracking-wider"
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-slate/10">
           {data.map((row) => (
-            <tr key={keyExtractor(row)} className="hover:bg-gray-50">
+            <tr key={keyExtractor(row)} className="hover:bg-paper/60 transition-colors">
               {columns.map((col, idx) => (
                 <td
                   key={idx}
-                  className={`px-4 py-3 text-sm text-gray-700 ${col.className ?? ""}`}
+                  className={`px-4 py-3 text-sm text-graphite ${col.className ?? ""}`}
                 >
                   {col.accessor(row)}
                 </td>
