@@ -4,6 +4,8 @@
 import { useEffect, useState, useMemo } from "react";
 import Topbar from "@/components/layout/Topbar";
 import Table, { Column } from "@/components/ui/Table";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import CreateEmployeeModal from "@/components/employees/CreateEmployeeModal";
 import { Employee } from "@/types";
 import { getEmployeesApi, deleteEmployeeApi } from "@/services/employee.service";
 import { getErrorMessage } from "@/lib/errors";
@@ -20,7 +22,10 @@ export default function EmployeesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -58,19 +63,23 @@ export default function EmployeesPage() {
     return filteredEmployees.slice(start, start + PAGE_SIZE);
   }, [filteredEmployees, currentPage]);
 
-  const handleDelete = async (id: number) => {
-    const confirmed = window.confirm("Are you sure you want to delete this employee?");
-    if (!confirmed) return;
+  const handleCreated = (employee: Employee) => {
+    setEmployees((prev) => [employee, ...prev]);
+    showToast("Employee created successfully", "success");
+  };
 
-    setDeletingId(id);
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteEmployeeApi(id);
+      await deleteEmployeeApi(deleteTarget.id);
+      setEmployees((prev) => prev.filter((emp) => emp.id !== deleteTarget.id));
       showToast("Employee deleted successfully", "success");
-      setEmployees((prev) => prev.filter((emp) => emp.id !== id));
+      setDeleteTarget(null);
     } catch (err) {
       showToast(getErrorMessage(err, "Failed to delete employee"), "error");
     } finally {
-      setDeletingId(null);
+      setDeleting(false);
     }
   };
 
@@ -92,12 +101,11 @@ export default function EmployeesPage() {
       header: "Actions",
       accessor: (emp) => (
         <button
-          onClick={() => handleDelete(emp.id)}
-          disabled={deletingId === emp.id}
-          className="inline-flex items-center gap-1.5 text-ember hover:text-ember/80 disabled:text-slate/50 text-sm font-medium"
+          onClick={() => setDeleteTarget(emp)}
+          className="inline-flex items-center gap-1.5 text-ember hover:text-ember/80 text-sm font-medium"
         >
           <Trash2 size={14} />
-          {deletingId === emp.id ? "Deleting..." : "Delete"}
+          Delete
         </button>
       ),
     },
@@ -122,8 +130,8 @@ export default function EmployeesPage() {
             />
           </div>
           <button
+            onClick={() => setIsCreateOpen(true)}
             className="bg-teal text-white px-4 py-2 rounded hover:opacity-90 transition text-sm font-medium"
-            onClick={() => showToast("Create modal coming next", "info")}
           >
             + Create Employee
           </button>
@@ -167,6 +175,23 @@ export default function EmployeesPage() {
           </div>
         )}
       </div>
+
+      <CreateEmployeeModal
+        isOpen={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onCreated={handleCreated}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Employee"
+        message={`Are you sure you want to delete ${deleteTarget?.name ?? "this employee"}? This action cannot be undone.`}
+        confirmLabel="Delete"
+        danger
+        loading={deleting}
+      />
     </>
   );
 }
