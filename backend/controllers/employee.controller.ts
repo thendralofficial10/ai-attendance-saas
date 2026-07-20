@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware.js";
 
-import { getEmployees, createEmployee, updateEmployee, deleteEmployee, updateProfileImage } from "../services/employee.service.js";
+import { getEmployees, createEmployee, updateEmployee, deleteEmployee, updateProfileImage, getEmployeeByEmail } from "../services/employee.service.js";
 export const getAllEmployees = async (
   req: Request,
   res: Response
@@ -87,6 +87,16 @@ export const editEmployee = async (
       return res.status(400).json({
         success: false,
         message: "Invalid email format",
+      });
+    }
+
+     // NEW: duplicate email check — make sure this email doesn't
+    // already belong to a DIFFERENT employee
+    const existing = await getEmployeeByEmail(email);
+    if (existing && existing.id !== id) {
+      return res.status(409).json({
+        success: false,
+        message: "This email is already in use by another employee",
       });
     }
 
@@ -201,3 +211,4 @@ export const uploadProfileImage = async (
     });
   }
 };
+

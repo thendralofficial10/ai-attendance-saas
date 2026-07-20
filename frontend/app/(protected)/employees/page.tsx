@@ -6,11 +6,12 @@ import Topbar from "@/components/layout/Topbar";
 import Table, { Column } from "@/components/ui/Table";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import CreateEmployeeModal from "@/components/employees/CreateEmployeeModal";
+import EditEmployeeModal from "@/components/employees/EditEmployeeModal";
 import { Employee } from "@/types";
 import { getEmployeesApi, deleteEmployeeApi } from "@/services/employee.service";
 import { getErrorMessage } from "@/lib/errors";
 import { useToast } from "@/context/ToastContext";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Pencil } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
@@ -26,6 +27,7 @@ export default function EmployeesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editTarget, setEditTarget] = useState<Employee | null>(null);
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -68,6 +70,11 @@ export default function EmployeesPage() {
     showToast("Employee created successfully", "success");
   };
 
+  const handleUpdated = (updated: Employee) => {
+    setEmployees((prev) => prev.map((emp) => (emp.id === updated.id ? updated : emp)));
+    showToast("Employee updated successfully", "success");
+  };
+
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -100,13 +107,22 @@ export default function EmployeesPage() {
     {
       header: "Actions",
       accessor: (emp) => (
-        <button
-          onClick={() => setDeleteTarget(emp)}
-          className="inline-flex items-center gap-1.5 text-ember hover:text-ember/80 text-sm font-medium"
-        >
-          <Trash2 size={14} />
-          Delete
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setEditTarget(emp)}
+            className="inline-flex items-center gap-1.5 text-teal hover:text-teal/80 text-sm font-medium"
+          >
+            <Pencil size={14} />
+            Edit
+          </button>
+          <button
+            onClick={() => setDeleteTarget(emp)}
+            className="inline-flex items-center gap-1.5 text-ember hover:text-ember/80 text-sm font-medium"
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        </div>
       ),
     },
   ];
@@ -191,6 +207,12 @@ export default function EmployeesPage() {
         confirmLabel="Delete"
         danger
         loading={deleting}
+      />
+
+      <EditEmployeeModal
+        employee={editTarget}
+        onClose={() => setEditTarget(null)}
+        onUpdated={handleUpdated}
       />
     </>
   );

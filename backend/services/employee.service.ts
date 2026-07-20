@@ -66,3 +66,12 @@ export const updateProfileImage = async (
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
+// Add to the END of services/employee.service.ts
+export const getEmployeeByEmail = async (email: string) => {
+  const result = await pool.query(
+    "SELECT * FROM employees WHERE email = $1",
+    [email]
+  );
+  return result.rows[0];
+};
